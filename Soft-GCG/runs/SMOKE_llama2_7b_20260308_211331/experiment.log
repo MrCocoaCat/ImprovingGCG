@@ -1,0 +1,4 @@
+2026-03-08 21:13:31,821 - INFO - Loading Model: D:\Model\Llama-2-7b-chat-hf
+2026-03-08 21:13:32,404 - INFO - We will use 90% of the memory on device 0 for storing the model, and 10% for the buffer to avoid OOM. You can set `max_memory` in to a higher value to use more memory (at your own risk).
+2026-03-08 21:13:40,309 - INFO - Loaded 2 train prompts, 2 test prompts.
+2026-03-08 21:13:40,322 - INFO - --- Run 1/2 ---
