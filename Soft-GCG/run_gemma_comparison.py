@@ -10,11 +10,37 @@ import gc
 import sys
 from datetime import datetime
 
+
+# 配置日志编码为UTF-8（适配Windows GBK编码问题）
+def setup_logging():
+    # 获取根日志器
+    root_logger = logging.getLogger()
+    root_logger.setLevel(logging.INFO)
+
+    # 移除原有处理器（避免重复输出）
+    for handler in root_logger.handlers[:]:
+        root_logger.removeHandler(handler)
+
+    # 创建新的控制台处理器，指定UTF-8编码
+    console_handler = logging.StreamHandler(sys.stdout)
+    # 设置格式化器（保持原有格式）
+    formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+    console_handler.setFormatter(formatter)
+    # 强制处理器使用UTF-8编码
+    console_handler.stream.reconfigure(encoding='utf-8')  # Python 3.7+ 支持
+
+    # 添加处理器到日志器
+    root_logger.addHandler(console_handler)
+
+
+# 调用配置函数
+setup_logging()
+
 # --- CONFIGURATION ---
 MODEL_MAPPING = {
     "gemma3:1b": "google/gemma-3-1b-it",
     "gemma3:4b": "google/gemma-3-4b-it",
-    "llama2:7b": "meta-llama/Llama-2-7b-chat-hf",
+    "llama2:7b": r"D:\Model\Llama-2-7b-chat-hf",
 }
 
 DEVICE = "cuda" if torch.cuda.is_available() else "cpu"
@@ -315,11 +341,16 @@ def run_gcg(model, batch, tokenizer, embed_weights, steps=500, smoke_test=False)
 
 def main():
     parser = argparse.ArgumentParser(description="Compare Vanilla GCG vs Soft-GCG on Gemma models")
-    parser.add_argument("--model", type=str, required=True, choices=list(MODEL_MAPPING.keys()),
+    parser.add_argument("--model", type=str, default="llama2:7b", choices=list(MODEL_MAPPING.keys()),
                         help="Model key (gemma3:1b, gemma3:4b, or llama2:7b)")
-    parser.add_argument("--num-trials", type=int, default=10, help="Number of independent trials per method")
-    parser.add_argument("--soft-steps", type=int, default=DEFAULT_STEPS, help="Steps for Soft-GCG")
-    parser.add_argument("--gcg-steps", type=int, default=200, help="Steps for vanilla GCG")
+    # parser.add_argument("--num-trials", type=int, default=10, help="Number of independent trials per method")
+    # parser.add_argument("--soft-steps", type=int, default=DEFAULT_STEPS, help="Steps for Soft-GCG")
+    # parser.add_argument("--gcg-steps", type=int, default=200, help="Steps for vanilla GCG")
+
+    parser.add_argument("--num-trials", type=int, default=5, help="Number of independent trials per method")
+    parser.add_argument("--soft-steps", type=int, default=10, help="Steps for Soft-GCG")
+    parser.add_argument("--gcg-steps", type=int, default=10, help="Steps for vanilla GCG")
+
     parser.add_argument("--smoke-test", action="store_true", help="Run tiny fast version to check bugs")
     args = parser.parse_args()
 
@@ -337,8 +368,8 @@ def main():
         args.gcg_steps = 5
         args.num_trials = 2
     else:
-        active_train = TRAIN_DATA
-        active_test = TEST_DATA
+        active_train = TRAIN_DATA[:1]
+        active_test = TEST_DATA[:1]
 
     configs = [
         ("gcg", args.gcg_steps, "Vanilla GCG"),

@@ -1,2 +1,0 @@
-2026-03-08 21:12:04,380 - INFO - Loading Model: D:\Model\Llama-2-7b-chat-hf
-2026-03-08 21:12:04,967 - INFO - We will use 90% of the memory on device 0 for storing the model, and 10% for the buffer to avoid OOM. You can set `max_memory` in to a higher value to use more memory (at your own risk).

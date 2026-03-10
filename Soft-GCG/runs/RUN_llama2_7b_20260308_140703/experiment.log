@@ -1,8 +1,0 @@
-2026-03-08 14:07:03,761 - INFO - Loading Model: D:\Model\Llama-2-7b-chat-hf
-2026-03-08 14:07:04,204 - INFO - We will use 90% of the memory on device 0 for storing the model, and 10% for the buffer to avoid OOM. You can set `max_memory` in to a higher value to use more memory (at your own risk).
-2026-03-08 14:07:09,611 - INFO - Loaded 25 train prompts, 10 test prompts.
-2026-03-08 14:07:09,625 - INFO - --- Run 1/5 ---
-2026-03-08 14:07:09,664 - INFO - Starting Soft Phase: 200 steps (Variant 2: False)
-2026-03-08 14:07:26,850 - INFO - Soft Step 0/200 | Loss: 7.4375 | T: 2.00
-2026-03-08 14:21:09,546 - INFO - Soft Step 50/200 | Loss: 4.5312 | T: 1.52
-2026-03-08 14:56:35,709 - INFO - Soft Step 100/200 | Loss: 3.0156 | T: 1.05
