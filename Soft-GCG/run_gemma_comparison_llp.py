@@ -300,40 +300,32 @@ def run_gcg(model, batch, tokenizer, embed_weights, steps=500, smoke_test=False)
         ]
         cands = curr_suffix.repeat(CANDIDATES, 1)
         cands.scatter_(1, torch.randint(0, SUFFIX_LEN, (CANDIDATES, 1), device=DEVICE), new_ids.unsqueeze(1))
-
         # 3. Eval
         best_loss = float('inf')
-
         for j in range(0, CANDIDATES, CHUNK_SIZE):
             chunk = cands[j:j+CHUNK_SIZE]
             C = chunk.shape[0]
             N = batch['p_ids'].shape[0]
-
             p_stack = batch['p_ids'].repeat(C, 1)
             c_stack = chunk.unsqueeze(1).expand(-1, N, -1).reshape(-1, SUFFIX_LEN)
             t_stack_loss = batch['t_ids_loss'].repeat(C, 1)
             t_stack_inp = batch['t_ids'].repeat(C, 1)
-
             full_ids = torch.cat([p_stack, c_stack, t_stack_inp], dim=1)
             p_mask_stack = batch['p_mask'].repeat(C, 1)
             s_t_mask = torch.ones(C * N, SUFFIX_LEN + batch['sizes'][2], device=DEVICE)
             full_mask = torch.cat([p_mask_stack, s_t_mask], dim=1)
-
             with torch.no_grad():
                 logits = model(full_ids, attention_mask=full_mask).logits
                 loss_vec = nn.CrossEntropyLoss(reduction='none', ignore_index=-100)(
                     logits[:, start:end, :].permute(0, 2, 1), t_stack_loss
                 ).mean(dim=1)
-
                 cand_scores = loss_vec.view(C, N).mean(dim=1)
                 min_v, min_idx = cand_scores.min(dim=0)
-
                 if min_v < best_loss:
                     best_loss = min_v.item()
                     curr_suffix = chunk[min_idx.item()]
         if i % 10 == 0:
             logging.info(f"GCG Step {i}/{steps} | Loss(CrossEntropyLoss): {best_loss:.4f}")
-
     return curr_suffix
 
 # --- MAIN ---
@@ -394,13 +386,14 @@ def main():
 
         for method, steps, label in configs:
             logging.info(f"--- {label} | Trial {trial} ---")
-
+            final_ids = None
             if method == "gcg":
                 final_ids = run_gcg(model, batch, tokenizer, embed_weights,
                                     steps=steps, smoke_test=args.smoke_test)
-            else:
+            elif method == "soft":
                 final_ids = run_soft(model, batch, embed_weights, steps=steps)
-
+            else:
+                pass
             if final_ids is None:
                 logging.warning(f"Skipped {label} (0 steps)")
                 continue
